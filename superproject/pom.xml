@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.optiolabs</groupId>
+		<artifactId>superproject-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>superproject</artifactId>
+	<packaging>apk</packaging>
+	<name>SuperProject - Application + Unit Tests</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android</artifactId>
+			<version>${platform.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>support-v4</artifactId>
+			<version>r6</version>
+		</dependency>
+
+
+		<!-- Unit testing dependencies -->
+		<dependency>
+			<groupId>org.robolectric</groupId>
+			<artifactId>robolectric</artifactId>
+			<version>${robolectric.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<!-- android-maven-plugin does the Android build -->
+			<plugin>
+				<extensions>true</extensions>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>android-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>lint</id>
+						<goals>
+							<goal>lint</goal>
+						</goals>
+						<phase>install</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<!-- emma start -->
+					<emma>
+						<enable>true</enable>
+						<classFolders>${project.basedir}/target/classes/</classFolders>
+						<outputMetaFile>${project.basedir}/target/emma/coverage.em</outputMetaFile>
+						<filters>-com.optiolabs.superproject.R,-com.optiolabs.superproject.BuildConfig,-com.optiolabs.superproject.R$*</filters>
+					</emma>
+					<!-- emma stop -->
+					<dex>
+						<noLocals>true</noLocals> <!-- must be set for emma -->
+					</dex>
+					<sdk>
+						<platform>14</platform>
+					</sdk>
+					<lint>
+						<skip>false</skip>
+						<failOnError>true</failOnError>
+						<warnAll>true</warnAll>
+					</lint>
+					<undeployBeforeDeploy>true</undeployBeforeDeploy>
+				</configuration>
+			</plugin>
+			<!-- This emma plugin makes it create target/generated-classes with the 
+				instrumented classes inside, which we need for unit testing -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>emma-maven-plugin</artifactId>
+				<version>${emma.maven.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>instrument</id>
+						<phase>process-test-classes</phase>
+						<goals>
+							<goal>instrument</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Surefire is used by default, but we need to change the config for 
+				emma -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${maven.surefire.plugin.version}</version>
+				<configuration>
+					<systemPropertyVariables combine.children="append">
+						<emma.rt.control>false</emma.rt.control>
+					</systemPropertyVariables>
+					<classesDirectory>${project.build.directory}/generated-classes/emma/classes</classesDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<!-- This gets rid of the Eclipse m2e plugin errors -->
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+										<artifactId>android-maven-plugin</artifactId>
+										<versionRange>
+											[3.8.0,)
+										</versionRange>
+										<goals>
+											<goal>consume-aar</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>emma-maven-plugin</artifactId>
+										<versionRange>
+											[1.0-alpha-3,)
+										</versionRange>
+										<goals>
+											<goal>instrument</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

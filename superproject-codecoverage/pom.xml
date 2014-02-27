@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.optiolabs</groupId>
+		<artifactId>superproject-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>superproject-codecoverage</artifactId>
+	<packaging>pom</packaging>
+	<name>Code Coverage Metadata Merging and Report Generation</name>
+
+	<dependencies>
+		<!-- This dependency ensures it is run last -->
+		<dependency>
+			<groupId>com.optiolabs</groupId>
+			<artifactId>superproject-it</artifactId>
+			<type>apk</type>
+			<version>${superproject.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>emma</groupId>
+			<artifactId>emma</artifactId>
+			<version>${emma.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+		    <!-- It's easier to run emma with ANT than with maven plugins... -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<configuration>
+							<target>
+								<property name="test_classpath" refid="maven.test.classpath" />
+								<echo message="Emma - instrumentation" />
+								<echo message="test classpath: ${test_classpath}" />
+								<java fork="true" classpathref="maven.test.classpath"
+									classname="emma">
+									<arg value="merge" />
+									<arg value="-in" />
+									<arg value="../superproject/target/emma/coverage.em" />
+									<arg value="-in" />
+									<arg value="../superproject/coverage.ec" />
+									<arg value="-in" />
+									<arg value="../superproject-it/target/emma/coverage.ec" />
+									<arg value="-in" />
+									<arg value="../superproject-at/target/emma/coverage.ec" />
+									<arg value="-out" />
+									<arg value="target/emma/emma.em" />
+								</java>
+								<java fork="true" classpathref="maven.test.classpath"
+									classname="emma">
+									<arg value="report" />
+									<arg value="-r" />
+									<arg value="html" />
+									<arg value="-in" />
+									<arg value="target/emma/emma.em" />
+									<arg value="-sp" />
+									<arg value="../superproject/src/main/java/" />
+									<arg value="-sp" />
+									<arg value="../superproject/src/main/java/" />
+									<arg value="-Dreport.html.out.file=target/coverage.html" />
+								</java>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<!-- This gets rid of the Eclipse m2e plugin errors -->
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<artifactId>maven-antrun-plugin</artifactId>
+										<versionRange>
+											[1.7,)
+										</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

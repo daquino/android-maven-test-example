@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.optiolabs</groupId>
+		<artifactId>superproject-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>superproject-it</artifactId>
+	<packaging>apk</packaging>
+	<name>SuperProject - Integration Tests</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android-test</artifactId>
+			<version>${platform.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.optiolabs</groupId>
+			<artifactId>superproject</artifactId>
+			<type>apk</type>
+			<version>${superproject.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.optiolabs</groupId>
+			<artifactId>superproject</artifactId>
+			<type>jar</type>
+			<version>${superproject.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.android.robotium</groupId>
+			<artifactId>robotium-solo</artifactId>
+			<version>${robotium.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>emma</groupId>
+			<artifactId>emma</artifactId>
+			<type>jar</type>
+			<version>${emma.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>android-maven-plugin</artifactId>
+				<configuration>
+					<test>
+						<coverage>true</coverage>
+						<createReport>true</createReport>
+						<coverageFile>/mnt/sdcard/coverage.ec</coverageFile>
+					</test>
+					<sdk>
+						<platform>14</platform>
+					</sdk>
+				</configuration>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<id>pull-coverage</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>pull</goal>
+						</goals>
+						<configuration>
+							<pullSource>/mnt/sdcard/coverage.ec</pullSource>
+							<pullDestination>${project.basedir}/target/emma/coverage.ec</pullDestination>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<!-- This gets rid of the Eclipse m2e plugin errors -->
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+										<artifactId>android-maven-plugin</artifactId>
+										<versionRange>
+											[3.8.0,)
+										</versionRange>
+										<goals>
+											<goal>consume-aar</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>
